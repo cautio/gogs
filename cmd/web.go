@@ -238,6 +238,13 @@ func runWeb(ctx *cli.Context) {
 					m.Patch("/hooks/:id:int", bind(api.EditHookOption{}), v1.EditRepoHook)
 					m.Get("/raw/*", middleware.RepoRef(), v1.GetRepoRawFile)
 					m.Get("/archive/*", v1.GetRepoArchive)
+
+					m.Group("/keys", func() {
+						m.Combo("").Get(v1.ListRepoDeployKeys).
+							Post(bind(api.CreateDeployKeyOption{}), v1.CreateRepoDeployKey)
+						m.Combo("/:id").Get(v1.GetRepoDeployKey).
+							Delete(v1.DeleteRepoDeploykey)
+					})
 				}, middleware.ApiRepoAssignment())
 			}, middleware.ApiReqToken())
 
@@ -507,6 +514,7 @@ func runWeb(ctx *cli.Context) {
 			m.Post("/new", bindIgnErr(auth.NewReleaseForm{}), repo.NewReleasePost)
 			m.Get("/edit/:tagname", repo.EditRelease)
 			m.Post("/edit/:tagname", bindIgnErr(auth.EditReleaseForm{}), repo.EditReleasePost)
+			m.Post("/delete", repo.DeleteRelease)
 		}, reqRepoAdmin, middleware.RepoRef())
 
 		m.Combo("/compare/*").Get(repo.CompareAndPullRequest).
